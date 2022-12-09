@@ -1,0 +1,169 @@
+---------------------------------------------------------created new warehouse named project_warehouse in snowflake--------------------
+------------------------------------------------------------created new database named new_database---------------------------
+
+
+----------------------------------TASK-1------------------------------------------------
+CREATE OR REPLACE TABLE SHOPPING_HISTORY(
+PRODUCT VARCHAR(30) NOT NULL,
+QUANTITY INT NOT NULL,
+UNIT_PRICE INT NOT NULL)
+
+INSERT INTO SHOPPING_HISTORY VALUES ('MILK',1,10),('MILK',2,10),('MILK',1,20),('MILK',2,20),('MILK',1,10),('BREAD',1,15),('BREAD',2,15),('BREAD',1,20),('BISCUIT',1,15),('BISCUIT',1,30)
+
+SELECT* FROM"NEW_DATABASE"."PUBLIC"."SHOPPING_HISTORY"
+
+SELECT
+PRODUCT ,SUM (QUANTITY*UNIT_PRICE) AS TOTAL_PRICE 
+FROM "NEW_DATABASE"."PUBLIC"."SHOPPING_HISTORY"
+GROUP BY 1
+
+
+                                                                        
+                                                                        *-------*--------------*                                                  
+                                                                        | PRODUCT | TOTAL_PRICE  |
+                                                                        *-------*--------------*
+                                                                        | MILK    | 100          |
+                                                                        | BREAD   | 65           |
+                                                                        | BISCUIT |45            |
+                                                                         *-------*--------------*
+---------------------------------------------------------------------TASK 2--------------------------------------------------------------------------------------------------------
+-----------------------------------------------------1st part----------------------------------------------------------------------------------------------------------
+create or replace table phones(
+name varchar(20) not null unique,
+phone_number int not null unique)
+
+insert into phones values('jack',1234),('lenna',3333),('mark',9999),('anna',7582)
+
+select*from phones
+
+create or replace table calls(
+id int not null unique,
+caller int not null,
+callee int not null,
+duration int not null)
+
+insert into calls values(25,1234,7582,8),(7,9999,7582,1),(18,9999,3333,4),(2,7582,3333,3),(3,3333,1234,1),(21,3333,1234,1)
+select * from calls
+
+select name from(
+select a.num, sum(a.dur)as tot_duration,b.name from
+(select caller as num,sum(duration) as dur
+from calls
+group by 1
+union all
+select callee,sum(duration) 
+from calls
+group by 1)a
+inner join phones b
+on a.num=b.phone_number
+group by 1,3)
+where tot_duration>=10
+ORDER BY NAME
+                                                     *------*
+                                                     | NAME |
+                                                     | jack |
+                                                     | anna |
+                                                     *------*
+--------------------------------------------------------------------------------part2-----------------------------------------------------------
+
+create or replace table phones1(
+name varchar(20) not null unique,
+phone_number int not null unique)
+
+insert into phones1 values('john',6356),('Addisson',4315),('kate',8803),('ginny',9831)
+
+create or replace table calls1(
+id int not null unique,
+caller int not null,
+callee int not null,
+duration int not null)
+
+insert into calls1 values(65,8803,9831,7),(100,9831,8803,3),(105,4315,9831,18)
+select * from calls1
+
+select b.name from
+(select caller,sum(duration) as tot_dur from
+(select caller,duration from calls1
+union all
+select callee,duration from calls1)
+group by 1)a
+left outer join phones1 b
+on a.caller=b.phone_number
+where tot_dur>=10
+order by name
+                                                     *----------*
+                                                     | NAME     |
+                                                     | Addisson |
+                                                     | ginny    |
+                                                     |  kate    |
+                                                     *----------*                                                 
+---------------------------------------------------------------------------------TASK3------------------------------------------------------------------------
+---------------------------------------------------------------------part1----------------------------------------------------------------------
+create table transactions(
+Amount int not null,
+Date Date not null)
+insert into transactions values(-10,'2020-01-14'),(-75,'2020-01-20'),(-5,'2020-01-25'),(-4,'2020-01-29'),(2000,'2020-03-10'),(-75,'2020-03-10'),
+(-20,'2020-03-15'),(40,'2020-03-15'),(-50,'2020-03-17'),(200,'2020-10-10'),(-200,'2020-10-10')
+
+
+with trn_det as
+(select sum(amount) as tot,extract(month from Date) as cc,
+case when amount<0 then 'cr' else 'nt' end as credit,
+count(credit) as ctt
+from transactions
+group by 2,3)
+
+select sum(tot)-(12-(select count(*) from trn_det where tot<= -100 and ctt>=3))*5 as balance
+from trn_det
+
+                                                           
+                                                           
+                                                           *-----------*
+                                                           |  Balance  |
+                                                           |  2746     |
+                                                           *-----------*
+-----------------------------------------------------------------------------------part2----------------------------------------------------------
+create table transactions2(
+Amount int not null,
+Date Date not null)
+insert into transactions2 values(1,'2020-06-29'),(35,'2020-02-20'),(-50,'2020-02-03'),(-1,'2020-02-26'),(-200,'2020-08-01'),(-44,'2020-02-07'),
+(-5,'2020-02-25'),(1,'2020-06-29'),(1,'2020-06-29'),(-100,'2020-12-29'),(-100,'2020-12-30'),(-100,'2020-12-31')
+
+
+with trn_det as
+(select sum(amount) as tot,extract(month from Date) as cc,
+case when amount<0 then 'cr' else 'nt' end as credit,
+count(credit) as ctt
+from transactions2
+group by 2,3)
+
+select sum(tot)-(12-(select count(*) from trn_det where tot<= '-100' and ctt>=3))*5 as balance
+from trn_det
+
+
+                                                           *-----------*
+                                                           |  Balance  |
+                                                           |  -612     |
+                                                           *-----------*
+
+--------------------------------------------------------------------part3----------------------------------------------------------------------------------------------------------------
+create table transactions3(
+Amount int not null,
+Date Date not null)
+insert into transactions3 values(6000,'2020-04-03'),(5000,'2020-04-02'),(4000,'2020-04-01'),(3000,'2020-03-01'),(2000,'2020-02-01'),(1000,'2020-01-01')
+
+
+with trn_det as
+(select sum(amount) as tot,extract(month from Date) as cc,
+case when amount<0 then 'cr' else 'nt' end as credit,
+count(credit) as ctt
+from transactions3
+group by 2,3)
+
+select sum(tot)-(12-(select count(*) from trn_det where tot<= '-100' and ctt>=3))*5 as balance
+from trn_det
+
+                                                           *-----------*
+                                                           |  Balance  |
+                                                           |  20940    |
+                                                           *-----------*

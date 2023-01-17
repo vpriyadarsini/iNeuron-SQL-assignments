@@ -1,0 +1,62 @@
+USE "INERUON_TASKS";
+
+SELECT * FROM "INERUON_TASKS"."PUBLIC"."ACCIDENTS_2015";
+SELECT * FROM "INERUON_TASKS"."PUBLIC"."VEHICLES_2015";
+SELECT * FROM "INERUON_TASKS"."PUBLIC"."VEHICLE_TYPES";
+
+-----------------1. Evaluate the median severity value of accidents caused by various Motorcycles.---------------->-
+
+--------------------------------SOLUTION 1--------------------------------------------------------------
+
+with med as( 
+select a.ACCIDENT_SEVERITY,v.Vehicle_type,vt.label,ROW_NUMBER() OVER(PARTITION BY LABEL ORDER BY ACCIDENT_SEVERITY) AS RN,
+  COUNT(1)OVER(PARTITION BY LABEL) AS CT
+from "ACCIDENTS_2015" a
+inner join "VEHICLES_2015" v on a.ACCIDENT_INDEX=v.ACCIDENT_INDEX
+inner join "VEHICLE_TYPES" vt on v.Vehicle_type=vt.code
+where label like '%otorcycle%')
+
+select label,ROUND(AVG(ACCIDENT_SEVERITY),0) as median_value
+FROM MED
+WHERE RN = CEIL(CT/2) OR RN IN (CT/2,(CT/2)+1)
+GROUP BY 1;
+
+--------------------------------Solution 2-------------------------------------------------------------------------------------------------------------
+select MEDIAN(T.Accident_Severity)  as Median_Severity , t.LABEL  from 
+(
+select v.Accident_Index , act.Accident_Severity , vt.CODE , vt.LABEL
+from vehicles_2015 as v
+left   join vehicle_types as  vt on v.vehicle_type = vt.CODE
+left  join accidents_2015 as act on act.Accident_Index = v.Accident_Index) 
+as t where t.LABEL  like '%Motorcycle%' group by LABEL ;
+
+
+--------------2. Evaluate Accident Severity and Total Accidents per Vehicle Type.-------------------------------
+
+SELECT COUNT(ACCIDENT_INDEX),ACCIDENT_SEVERITY,Vehicle_type,label FROM
+(select a.ACCIDENT_INDEX,a.ACCIDENT_SEVERITY,v.Vehicle_type,vt.label
+from "ACCIDENTS_2015" a
+inner join "VEHICLES_2015" v on a.ACCIDENT_INDEX=v.ACCIDENT_INDEX
+inner join "VEHICLE_TYPES" vt on v.Vehicle_type=vt.code)SQ
+GROUP BY 2,3,4
+ORDER BY 4;
+
+
+-------------3. Calculate the Average Severity by vehicle type.------------------------------------
+
+SELECT round(avg(ACCIDENT_SEVERITY),2) AVG_ACC_SEVERITY,Vehicle_type FROM
+(select a.ACCIDENT_INDEX,a.ACCIDENT_SEVERITY,v.Vehicle_type,vt.label
+from "ACCIDENTS_2015" a
+inner join "VEHICLES_2015" v on a.ACCIDENT_INDEX=v.ACCIDENT_INDEX
+inner join "VEHICLE_TYPES" vt on v.Vehicle_type=vt.code)SQ
+GROUP BY 2
+ORDER BY 2 DESC, 1;
+
+-----------4. Calculate the Average Severity and Total Accidents by Motorcycle.-----------------
+
+select round(avg(a.ACCIDENT_SEVERITY),2) AVG_ACC_SEVERITY, count(a.ACCIDENT_INDEX) as TOTAL_ACCIDENTS
+from "ACCIDENTS_2015" a
+inner join "VEHICLES_2015" v on a.ACCIDENT_INDEX=v.ACCIDENT_INDEX
+inner join "VEHICLE_TYPES" vt on v.Vehicle_type=vt.code
+where LABEL  like '%otorcycle%'
+ORDER BY 2 desc;

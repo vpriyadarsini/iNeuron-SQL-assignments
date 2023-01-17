@@ -1,0 +1,46 @@
+**----------------------**-----------------------------------------WORLD_POPULATION---------------------------------------**---------------------------------*------------------*
+
+CREATE OR REPLACE TABLE VP_POPULATION(
+COUNTRY VARCHAR(80),
+AREA INT,
+BIRTH_RATE DECIMAL(20,2),
+DEATH_RATE DECIMAL(20,2),
+Infant_mortality_rate DECIMAL(20,2),
+Internet_users INT,
+Life_exp_at_birth DECIMAL(20,2),
+Mater178l_mortality_rate INT,
+Net_migration_rate DECIMAL(20,2),
+POPULATION INT,
+Population_growth_rate DECIMAL(10,2)
+)
+
+SELECT * FROM VP_POPULATION
+
+------------------------------------------1.Which country has the highest population?------------------------------------
+SELECT COUNTRY 
+FROM VP_POPULATION
+WHERE POPULATION=(SELECT MAX(POPULATION) FROM VP_POPULATION)
+
+--------------------------------------------2.Which country has the least number of people?----------------------------
+SELECT COUNTRY 
+FROM VP_POPULATION
+WHERE POPULATION=(SELECT min(POPULATION) FROM VP_POPULATION)
+
+-----------------------------------------------3.Which country is witnessing the highest population growth?-------------
+
+SELECT COUNTRY 
+FROM VP_POPULATION
+WHERE population_growth_rate= (SELECT max(population_growth_rate) FROM VP_POPULATION)
+
+----------------------------------------------4. Which country has an extraordinary number for the population (we need to find which country has highest population)?-----
+SELECT COUNTRY 
+FROM VP_POPULATION
+ORDER by POPULATION DESC
+LIMIT 1
+
+--------------------------------------------------5.Which is the most densely populated country in the world?---------------
+SELECT COUNTRY
+FROM VP_POPULATION
+where area != 0
+order by (POPULATION/area)  desc 
+limit 1
